@@ -1,5 +1,12 @@
+#define UNITY_ANDROID
+
+#if UNITY_PS4 || UNITY_WII || UNITY_XBOXONE
+#define USING_CONSOLE
+#endif
+
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.UI;
@@ -18,6 +25,10 @@ public class playerMovement : MonoBehaviour
 
     private Touch theTouch;
 
+    public TMP_Text text;
+
+    public int health, mana, stamina;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -25,15 +36,33 @@ public class playerMovement : MonoBehaviour
 
         //makes the character look down by default
         lookDirection = new Vector2(0, -1);
+
+        string platforminfo = "This project is running ";
+#if UNITY_EDITOR
+        platforminfo += "in the editor";
+#elif UNITY_WEBGL
+        platforminfo += "on the web";
+#else
+        platforminfo += "as a build";
+#endif
+        text.text = platforminfo;
+
     }
 
     // Update is called once per frame
     void Update()
     {
+
+
+#if UNITY_EDITOR
         //getting input from keyboard controls
         calculateDesktopInputs();
-
-        //calculateMobileInput();
+#elif UNITY_ANDROID
+        //getting input from screen interaction with dpad
+        calculateMobileInput();
+#elif USING_CONSOLE
+        //console controls
+#endif
 
         //calculateTouchInput();
 
@@ -62,6 +91,9 @@ public class playerMovement : MonoBehaviour
 
     void animationSetup()
     {
+
+        #region Check Input Magnitude
+
         //checking if the player wants to move the character or not
         if (inputDirection.magnitude > 0.01f)
         {
@@ -78,11 +110,17 @@ public class playerMovement : MonoBehaviour
 
         }
 
+        #endregion
+
+        #region Update Input and Look Direction
+
         //sets the values for input and lookdirection. this determines what animation to play in a blend tree
         anim.SetFloat("inputX", inputDirection.x);
         anim.SetFloat("inputY", inputDirection.y);
         anim.SetFloat("lookX", lookDirection.x);
         anim.SetFloat("lookY", lookDirection.y);
+
+        #endregion
     }
 
     public void attack()
@@ -185,6 +223,28 @@ public class playerMovement : MonoBehaviour
         if (collision.CompareTag("Stairs2"))
         {
             Player.transform.position = new Vector2(-0.93f, 3.24f);
+        }
+
+        if(collision.GetComponent<potionBehaviour>().potionInfo.potionName == "Healing")
+        {
+            health += collision.GetComponent<potionBehaviour>().potionInfo.potionValue;
+            Debug.Log($"Health: {health}");
+            Destroy(collision.gameObject);
+            anim.SetTrigger("PickUp");
+        }
+        else if(collision.GetComponent<potionBehaviour>().potionInfo.potionName == "Stamina")
+        {
+            stamina += collision.GetComponent<potionBehaviour>().potionInfo.potionValue;
+            Debug.Log($"Stamina: {stamina}");
+            Destroy(collision.gameObject);
+            anim.SetTrigger("PickUp");
+        }
+        else if(collision.GetComponent<potionBehaviour>().potionInfo.potionName == "Mana")
+        {
+            mana += collision.GetComponent<potionBehaviour>().potionInfo.potionValue;
+            Debug.Log($"Mana: {mana}");
+            Destroy(collision.gameObject);
+            anim.SetTrigger("PickUp");
         }
     }
 
