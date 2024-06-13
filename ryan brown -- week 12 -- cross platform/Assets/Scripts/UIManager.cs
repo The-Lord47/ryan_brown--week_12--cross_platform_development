@@ -1,14 +1,29 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
+using UnityEditor;
 
 public class UIManager : MonoBehaviour
 {
     public GameObject npcCard;
     public TMP_Text npcName, npcDescription, npcArmour, npcAge, npcFriendliness;
     public Image npcArtwork;
+    public GameObject gameOverScreen;
+
+
+    public static UIManager Instance { get; private set; }
+
+    private void Awake()
+    {
+        if (Instance != null)
+        {
+            Destroy(gameObject);
+        }
+
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
+    }
+
 
     public void ShowCharCard(NPCInfo npcStats)
     {
@@ -27,5 +42,19 @@ public class UIManager : MonoBehaviour
         {
             npcFriendliness.text = "If you bleed, I will feed...";
         }
+    }
+
+    public void GameOverScreen()
+    {
+        gameOverScreen.SetActive(true);
+    }
+
+    public void QuitButton()
+    {
+#if UNITY_EDITOR
+        EditorApplication.ExitPlaymode();
+#else
+        Application.Quit();
+#endif
     }
 }

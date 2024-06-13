@@ -3,13 +3,10 @@
 #if UNITY_PS4 || UNITY_WII || UNITY_XBOXONE
 #define USING_CONSOLE
 #endif
-
-using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.UI;
+using UnityEngine.InputSystem;
 
 public class playerMovement : MonoBehaviour
 {
@@ -29,6 +26,10 @@ public class playerMovement : MonoBehaviour
 
     public int health, mana, stamina;
 
+
+    PlayerInput _playerInput;
+    InputAction moveAction;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -46,6 +47,10 @@ public class playerMovement : MonoBehaviour
         platforminfo += "as a build";
 #endif
         text.text = platforminfo;
+
+
+        _playerInput = GetComponent<PlayerInput>();
+        moveAction = _playerInput.actions.FindAction("Move");
 
     }
 
@@ -76,10 +81,12 @@ public class playerMovement : MonoBehaviour
 
     void calculateDesktopInputs()
     {
-        float x = Input.GetAxisRaw("Horizontal");
+        /*float x = Input.GetAxisRaw("Horizontal");
         float y = Input.GetAxisRaw("Vertical");
 
-        inputDirection = new Vector2(x, y).normalized;
+        inputDirection = new Vector2(x, y).normalized;*/
+
+        inputDirection = moveAction.ReadValue<Vector2>();
 
         if(Input.GetKeyDown(KeyCode.Space))
         {
@@ -165,7 +172,7 @@ public class playerMovement : MonoBehaviour
         }
     }
 
-    void calculateTouchInput()
+    /*void calculateTouchInput()
     {
         if (Input.touchCount > 0)
         {
@@ -204,7 +211,7 @@ public class playerMovement : MonoBehaviour
             joyStick.gameObject.SetActive(false);
             joyStickInputArea.gameObject.SetActive(false);
         }
-    }
+    }*/
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
@@ -245,6 +252,13 @@ public class playerMovement : MonoBehaviour
             Debug.Log($"Mana: {mana}");
             Destroy(collision.gameObject);
             anim.SetTrigger("PickUp");
+        }
+        else if(collision.GetComponent<potionBehaviour>().potionInfo.potionName == "Death")
+        {
+            health -= 100;
+            Debug.Log($"Health: {health}");
+            Destroy(collision.gameObject);
+            UIManager.Instance.GameOverScreen();
         }
     }
 
